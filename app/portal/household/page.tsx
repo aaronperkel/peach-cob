@@ -1,6 +1,4 @@
-import { RowDataPacket } from "mysql2";
-import { requireAdmin } from "@/lib/auth";
-import { query } from "@/lib/db";
+import { getPeopleDetails, requireAdmin } from "@/lib/auth";
 import { getBillTypes } from "@/lib/bills";
 import { getReminderConfig } from "@/lib/reminders";
 import PortalTabs from "@/app/portal/PortalTabs";
@@ -21,12 +19,10 @@ export default async function HouseholdPage({
     requireAdmin(),
     getBillTypes(),
     getReminderConfig(),
-    query<RowDataPacket>(
-      "SELECT id, name, email, is_admin AS isAdmin, splits_bills AS splitsBills FROM people ORDER BY name ASC",
-    ),
+    getPeopleDetails(),
   ]);
 
-  const people = peopleDetails as unknown as PersonDetail[];
+  const people = peopleDetails as PersonDetail[];
 
   return (
     <main>

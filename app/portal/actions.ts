@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { getEmailMap, requireAdminAction } from "@/lib/auth";
 import { execute, getPool, query } from "@/lib/db";
 import { getBillTypeByName, getSplitters, billFileHref } from "@/lib/bills";
+import { demoMode } from "@/lib/demo";
 import {
   emailIdentity,
   formatLongDate,
@@ -28,6 +29,8 @@ function fail(err: string, path = "/portal"): never {
 
 const HOUSEHOLD = "/portal/household";
 
+const DEMO_MSG = "Demo mode — this is just for looking around, changes aren't saved yet.";
+
 // ---------------------------------------------------------------------------
 // Add bill (used with useActionState so validation errors render inline)
 // ---------------------------------------------------------------------------
@@ -40,6 +43,7 @@ export async function addBill(
   _prev: AddBillState,
   formData: FormData,
 ): Promise<AddBillState> {
+  if (demoMode()) return { errors: [DEMO_MSG] };
   let poster;
   try {
     poster = await requireAdminAction();
@@ -190,6 +194,7 @@ export async function updateOwes(
   billId: number,
   paidPersonIds: number[],
 ): Promise<{ ok: boolean; status?: string; error?: string }> {
+  if (demoMode()) return { ok: false, error: DEMO_MSG };
   try {
     await requireAdminAction();
   } catch {
@@ -249,6 +254,7 @@ export async function updateOwes(
 // ---------------------------------------------------------------------------
 
 export async function sendReminder(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG);
   try {
     await requireAdminAction();
   } catch {
@@ -328,6 +334,7 @@ export async function sendReminder(formData: FormData): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function savePerson(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG, HOUSEHOLD);
   try {
     await requireAdminAction();
   } catch {
@@ -370,6 +377,7 @@ export async function savePerson(formData: FormData): Promise<void> {
 }
 
 export async function removePerson(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG, HOUSEHOLD);
   try {
     await requireAdminAction();
   } catch {
@@ -390,6 +398,7 @@ export async function removePerson(formData: FormData): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function saveBillType(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG, HOUSEHOLD);
   try {
     await requireAdminAction();
   } catch {
@@ -440,6 +449,7 @@ export async function saveBillType(formData: FormData): Promise<void> {
 }
 
 export async function removeBillType(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG, HOUSEHOLD);
   try {
     await requireAdminAction();
   } catch {
@@ -472,6 +482,7 @@ export async function removeBillType(formData: FormData): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function saveReminderConfig(formData: FormData): Promise<void> {
+  if (demoMode()) fail(DEMO_MSG, HOUSEHOLD);
   try {
     await requireAdminAction();
   } catch {

@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import { RowDataPacket } from "mysql2";
 import { requireAdmin } from "@/lib/auth";
-import { query } from "@/lib/db";
 import {
   billFileHref,
   getBillsForPage,
   getBillTypes,
   getOwedPairs,
+  getOwingByBill,
   getSplitters,
   getTotalBillCount,
 } from "@/lib/bills";
@@ -57,20 +56,7 @@ export default async function PortalPage({
   if (currentPage > totalPages && totalBills > 0) redirect(`/portal?page=${totalPages}`);
 
   // One query for "who still owes" across every bill on this page
-  const owingByBill = new Map<number, Set<number>>();
-  if (bills.length > 0) {
-    const ids = bills.map((b) => b.id);
-    const owes = await query<RowDataPacket>(
-      `SELECT bill_id AS billId, person_id AS personId
-       FROM bill_debts WHERE bill_id IN (${ids.map(() => "?").join(",")})`,
-      ids,
-    );
-    for (const row of owes) {
-      const billId = Number(row.billId);
-      if (!owingByBill.has(billId)) owingByBill.set(billId, new Set());
-      owingByBill.get(billId)!.add(Number(row.personId));
-    }
-  }
+  const owingByBill = await getOwingByBill(bills.map((b) => b.id));
 
   return (
     <main>

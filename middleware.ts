@@ -13,8 +13,10 @@ const RENEW_AFTER_SECONDS = 7 * 24 * 60 * 60;
 // Everything requires a session except the public surfaces (login page,
 // calendar feed, static assets — excluded via the matcher below).
 export async function middleware(req: NextRequest) {
-  // Local dev: APP_LOCAL_DEV_USER bypasses login entirely
-  if (process.env.APP_LOCAL_DEV_USER) return NextResponse.next();
+  // Local dev / demo mode: bypass login entirely
+  if (process.env.APP_LOCAL_DEV_USER || process.env.APP_DEMO_MODE === "1") {
+    return NextResponse.next();
+  }
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await readSessionToken(token) : null;

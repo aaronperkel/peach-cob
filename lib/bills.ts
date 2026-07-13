@@ -1,5 +1,16 @@
 import { RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
+import {
+  DEMO_BILLS,
+  DEMO_BILL_TYPES,
+  DEMO_DEBTS,
+  DEMO_PEOPLE,
+  demoMode,
+  demoNextDue,
+  demoOwedAmount,
+  demoOwedBillIds,
+  demoOwedPairs,
+} from "@/lib/demo";
 
 export interface Bill extends RowDataPacket {
   id: number;
@@ -43,16 +54,23 @@ const BILL_TYPE_SELECT = `
   LEFT JOIN people po ON po.id = t.owner_id`;
 
 export async function getBillTypes(): Promise<BillType[]> {
+  if (demoMode()) return DEMO_BILL_TYPES as unknown as BillType[];
   return query<BillType>(`${BILL_TYPE_SELECT} ORDER BY t.name`);
 }
 
 export async function getBillTypeByName(name: string): Promise<BillType | null> {
+  if (demoMode()) {
+    return (DEMO_BILL_TYPES.find((t) => t.name === name) ?? null) as BillType | null;
+  }
   const rows = await query<BillType>(`${BILL_TYPE_SELECT} WHERE t.name = ?`, [name]);
   return rows[0] ?? null;
 }
 
 /** type name → emoji map, with the 📄 fallback handled by the caller default. */
 export async function getEmojiMap(): Promise<Record<string, string>> {
+  if (demoMode()) {
+    return Object.fromEntries(DEMO_BILL_TYPES.map((t) => [t.name, t.emoji]));
+  }
   try {
     const rows = await query<RowDataPacket>("SELECT name, emoji FROM bill_types");
     return Object.fromEntries(rows.map((r) => [r.name, r.emoji]));
@@ -66,6 +84,7 @@ export function billEmoji(map: Record<string, string>, typeName: string): string
 }
 
 export async function getTotalBillCount(): Promise<number> {
+  if (demoMode()) return DEMO_BILLS.length;
   const rows = await query<RowDataPacket>("SELECT COUNT(*) AS n FROM bills");
   return Number(rows[0].n);
 }
@@ -73,6 +92,10 @@ export async function getTotalBillCount(): Promise<number> {
 export async function getBillsForPage(limit: number, offset: number): Promise<Bill[]> {
   const safeLimit = Math.max(1, Math.trunc(limit));
   const safeOffset = Math.max(0, Math.trunc(offset));
+  if (demoMode()) {
+    const sorted = [...DEMO_BILLS].sort((a, b) => b.billDate.localeCompare(a.billDate));
+    return sorted.slice(safeOffset, safeOffset + safeLimit) as unknown as Bill[];
+  }
   return query<Bill>(
     `${BILL_SELECT}
      ORDER BY b.bill_date DESC
@@ -82,6 +105,7 @@ export async function getBillsForPage(limit: number, offset: number): Promise<Bi
 
 /** Total outstanding for one person across unpaid bills. */
 export async function getUserOwedAmount(personId: number): Promise<number> {
+  if (demoMode()) return demoOwedAmount(personId);
   const rows = await query<RowDataPacket>(
     `SELECT SUM(b.per_person_cost) AS owed
      FROM bills b
@@ -94,6 +118,7 @@ export async function getUserOwedAmount(personId: number): Promise<number> {
 
 /** Bill IDs the person still owes on (bills not globally paid). */
 export async function getUserOwedBillIds(personId: number): Promise<Set<number>> {
+  if (demoMode()) return demoOwedBillIds(personId);
   const rows = await query<RowDataPacket>(
     `SELECT d.bill_id AS billId
      FROM bill_debts d
@@ -108,6 +133,7 @@ export async function getUserOwedBillIds(personId: number): Promise<Set<number>>
 export async function getUserNextDue(
   personId: number,
 ): Promise<{ dueDate: string; typeName: string } | null> {
+  if (demoMode()) return demoNextDue(personId);
   const rows = await query<RowDataPacket>(
     `SELECT b.due_date AS dueDate, t.name AS typeName
      FROM bill_debts d
@@ -132,6 +158,7 @@ export interface OwedPair {
  * Debts on a bill run to the bill type's owner (she fronted the provider).
  */
 export async function getOwedPairs(): Promise<OwedPair[]> {
+  if (demoMode()) return demoOwedPairs();
   const rows = await query<RowDataPacket>(
     `SELECT p.name AS debtor, po.name AS owner, SUM(b.per_person_cost) AS amount
      FROM bill_debts d
@@ -152,6 +179,7 @@ export async function getOwedPairs(): Promise<OwedPair[]> {
 }
 
 export async function getAllPeople(): Promise<{ id: number; name: string }[]> {
+  if (demoMode()) return DEMO_PEOPLE.map((p) => ({ id: p.id, name: p.name }));
   const rows = await query<RowDataPacket>(
     "SELECT id, name FROM people ORDER BY name ASC",
   );
@@ -160,10 +188,37 @@ export async function getAllPeople(): Promise<{ id: number; name: string }[]> {
 
 /** The people bills are split among (excludes sign-in-only accounts like the maintainer). */
 export async function getSplitters(): Promise<{ id: number; name: string }[]> {
+  if (demoMode()) {
+    return DEMO_PEOPLE.filter((p) => p.splitsBills).map((p) => ({ id: p.id, name: p.name }));
+  }
   const rows = await query<RowDataPacket>(
     "SELECT id, name FROM people WHERE splits_bills = 1 ORDER BY name ASC",
   );
   return rows.map((r) => ({ id: Number(r.id), name: r.name }));
+}
+
+/** billId → personIds still owing, for the bills on a portal page. */
+export async function getOwingByBill(billIds: number[]): Promise<Map<number, Set<number>>> {
+  const owingByBill = new Map<number, Set<number>>();
+  if (billIds.length === 0) return owingByBill;
+  if (demoMode()) {
+    for (const id of billIds) {
+      const owing = DEMO_DEBTS.get(id);
+      if (owing) owingByBill.set(id, new Set(owing));
+    }
+    return owingByBill;
+  }
+  const owes = await query<RowDataPacket>(
+    `SELECT bill_id AS billId, person_id AS personId
+     FROM bill_debts WHERE bill_id IN (${billIds.map(() => "?").join(",")})`,
+    billIds,
+  );
+  for (const row of owes) {
+    const billId = Number(row.billId);
+    if (!owingByBill.has(billId)) owingByBill.set(billId, new Set());
+    owingByBill.get(billId)!.add(Number(row.personId));
+  }
+  return owingByBill;
 }
 
 /** Map a stored pdf_path (e.g. "2026/Gas/0623.pdf") to the auth-gated file route. */

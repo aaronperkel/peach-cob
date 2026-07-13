@@ -21,7 +21,7 @@ There is no test suite; `npm run build` (which typechecks) plus hitting routes a
 
 ## Configuration
 
-Env lives in `.env.local` (see `.env.example` for all keys). Notable beyond the obvious DB/SMTP ones: `SESSION_SECRET` (jose cookie signing), `SITE_PASSPHRASE`/`SITE_OWNER_EMAIL` (fallback passphrase login; that path always fails while `SITE_PASSPHRASE` is unset — the primary email-code login needs only SMTP), `APP_LOCAL_DEV_USER` (set to a `people.email` to bypass login entirely — middleware short-circuits when it is set), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, all PDF storage), `CRON_SECRET` (bearer token for `/api/cron/reminders`; must match the GitHub Actions repo secret of the same name).
+Env lives in `.env.local` (see `.env.example` for all keys). Notable beyond the obvious DB/SMTP ones: `SESSION_SECRET` (jose cookie signing), `SITE_PASSPHRASE`/`SITE_OWNER_EMAIL` (fallback passphrase login; that path always fails while `SITE_PASSPHRASE` is unset — the primary email-code login needs only SMTP), `APP_LOCAL_DEV_USER` (set to a `people.email` to bypass login entirely — middleware short-circuits when it is set), `APP_DEMO_MODE=1` (no login, no DB: every read serves the in-memory dataset in `lib/demo.ts` — relative dates, viewer is Abby — and every mutation politely refuses; for showing the site before the real DB exists), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, all PDF storage), `CRON_SECRET` (bearer token for `/api/cron/reminders`; must match the GitHub Actions repo secret of the same name).
 
 The database is TiDB Cloud Serverless (MySQL-compatible, TLS on port 4000). `db/schema.sql` is the DDL; `db/seed.sql` seeds the four residents + their utilities (replace the placeholder emails before running — email is the login identity).
 

@@ -1,5 +1,6 @@
 import { RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
+import { DEMO_BILLS, demoMode } from "@/lib/demo";
 
 const EOL = "\r\n";
 
@@ -16,11 +17,18 @@ export async function buildIcs(): Promise<string> {
     `BEGIN:VCALENDAR${EOL}VERSION:2.0${EOL}PRODID:-//Peach Cob//404 Parke Ave//EN${EOL}` +
     `X-WR-CALNAME:Peach Cob · Bills${EOL}`;
 
-  const bills = await query<RowDataPacket>(
-    `SELECT b.due_date AS dueDate, b.status, t.name AS typeName, t.emoji
-     FROM bills b
-     JOIN bill_types t ON t.id = b.type_id`,
-  );
+  const bills = demoMode()
+    ? DEMO_BILLS.map((b) => ({
+        dueDate: b.dueDate,
+        status: b.status,
+        typeName: b.typeName,
+        emoji: b.typeEmoji,
+      }))
+    : await query<RowDataPacket>(
+        `SELECT b.due_date AS dueDate, b.status, t.name AS typeName, t.emoji
+         FROM bills b
+         JOIN bill_types t ON t.id = b.type_id`,
+      );
   for (const row of bills) {
     if (!row.dueDate) continue;
     const due = String(row.dueDate).replaceAll("-", "");
