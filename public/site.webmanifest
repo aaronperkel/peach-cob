@@ -1,0 +1,15 @@
+{
+  "name": "Peach Cob",
+  "short_name": "Peach Cob",
+  "description": "The house ledger for 404 Parke Ave — bills split, tracked, and settled.",
+  "icons": [
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#eb9a76",
+  "background_color": "#faf3e7",
+  "display": "standalone"
+}

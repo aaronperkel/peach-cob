@@ -1,0 +1,24 @@
+# Dependencies / build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Design inspo screenshots (personal, not part of the app)
+inspo/
+
+# macOS
+.DS_Store
+
+# Backup files
+*.backup
+
+# IDE / tooling
+.vscode/
+.idea/
+.claude/
