@@ -302,6 +302,62 @@ html {
   }
 
   /*
+   * Welcome-tour vignettes (app/welcome/Tour.tsx): elements enter staggered
+   * via inline animation-delay; `backwards` keeps each one invisible until
+   * its turn comes.
+   */
+  .tour-pop {
+    animation: tour-pop 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) backwards;
+  }
+
+  .tour-slide {
+    animation: tour-slide 0.45s ease-out backwards;
+  }
+
+  .tour-check {
+    animation: tour-pop 0.3s cubic-bezier(0.2, 1.2, 0.4, 1) backwards;
+  }
+
+  /* The PAID stamp: slams down oversized and settles slightly askew */
+  .tour-stamp {
+    animation: tour-stamp 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) backwards;
+    rotate: -3deg;
+  }
+
+  @keyframes tour-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes tour-slide {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes tour-stamp {
+    from {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /*
    * Stacked tables: below sm a .table-stack table reflows into ledger cards —
    * one grid per row, cells placed by the .cell-* classes — so nothing scrolls
    * sideways on a phone. Desktop keeps the ruled table untouched.
@@ -409,7 +465,11 @@ html {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .skeleton {
+    .skeleton,
+    .tour-pop,
+    .tour-slide,
+    .tour-check,
+    .tour-stamp {
       animation: none;
     }
   }

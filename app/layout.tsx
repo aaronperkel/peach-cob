@@ -27,7 +27,7 @@ const ledger = Courier_Prime({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_BASE_URL ?? "https://peachcob.aaronperkel.com"),
+  metadataBase: new URL(process.env.APP_BASE_URL ?? "https://peachcob.vercel.app"),
   title: "Peach Cob",
   description: "The house ledger for 404 Parke Ave — bills split, tracked, and settled.",
   authors: [{ name: "Aaron Perkel" }],
@@ -76,11 +76,16 @@ export default async function RootLayout({
             <span className="font-mono font-bold uppercase tracking-[0.12em]">
               Peach Cob · 404 Parke Ave
             </span>
-            <span>
-              questions?{" "}
-              <a className="hover:text-ink underline" href="mailto:me@aaronperkel.com">
-                me@aaronperkel.com
+            <span className="flex items-center gap-3">
+              <a className="hover:text-ink underline" href="/welcome">
+                how this works
               </a>
+              <span>
+                questions?{" "}
+                <a className="hover:text-ink underline" href="mailto:me@aaronperkel.com">
+                  me@aaronperkel.com
+                </a>
+              </span>
             </span>
           </div>
         </footer>

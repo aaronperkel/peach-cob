@@ -80,7 +80,8 @@ export async function submitCode(formData: FormData): Promise<void> {
   }
 
   await startSession(person.email);
-  redirect(next);
+  // First sign-in ever: detour through the welcome tour before the ledger
+  redirect(person.welcomedAt ? next : "/welcome");
 }
 
 function passphraseMatches(input: string): boolean {
@@ -100,8 +101,8 @@ export async function login(formData: FormData): Promise<void> {
     redirect(loginUrl({ err: "passphrase", mode: "passphrase", next }));
   }
 
-  await startSession(
-    (process.env.SITE_OWNER_EMAIL ?? "me@aaronperkel.com").toLowerCase(),
-  );
-  redirect(next);
+  const ownerEmail = (process.env.SITE_OWNER_EMAIL ?? "me@aaronperkel.com").toLowerCase();
+  await startSession(ownerEmail);
+  const person = await getPersonByEmail(ownerEmail);
+  redirect(person && !person.welcomedAt ? "/welcome" : next);
 }

@@ -17,4 +17,4 @@ jobs:
         run: |
           curl -fsS -m 90 --retry 2 --retry-delay 15 \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://peachcob.aaronperkel.com/api/cron/reminders
+            https://peachcob.vercel.app/api/cron/reminders

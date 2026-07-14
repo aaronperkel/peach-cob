@@ -1,8 +1,8 @@
 -- db/seed.sql
 -- First-run data for 404 Parke Ave. Run once after schema.sql.
 -- ⚠️ Replace the placeholder @example.com emails with the girls' real
--- addresses before running — email is the login identity, and codes are
--- sent there.
+-- addresses before running (this repo is public, so they are not checked
+-- in) — email is the login identity, and codes are sent there.
 
 INSERT INTO people (name, email, is_admin, splits_bills) VALUES
   ('Abby',     'abby@example.com',     1, 1),

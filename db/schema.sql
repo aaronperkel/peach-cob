@@ -10,7 +10,8 @@ CREATE TABLE people (
     name         VARCHAR(100)  NOT NULL UNIQUE,
     email        VARCHAR(254)  NOT NULL UNIQUE, -- also the login identity (one-time codes are emailed here)
     is_admin     TINYINT(1)    NOT NULL DEFAULT 0,
-    splits_bills TINYINT(1)    NOT NULL DEFAULT 1 -- 0 = can sign in but is never part of a split (e.g. the maintainer)
+    splits_bills TINYINT(1)    NOT NULL DEFAULT 1, -- 0 = can sign in but is never part of a split (e.g. the maintainer)
+    welcomed_at  DATETIME      DEFAULT NULL -- UTC, set when she finishes the first-login welcome tour (/welcome)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Each utility has an owner: the roommate whose name the account is in. She

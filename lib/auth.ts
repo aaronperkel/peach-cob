@@ -10,11 +10,12 @@ export interface Person extends RowDataPacket {
   email: string;
   isAdmin: number;
   splitsBills: number;
+  welcomedAt: string | null; // UTC DATETIME string; null until she finishes /welcome
 }
 
 export async function getPersonByEmail(email: string): Promise<Person | null> {
   const rows = await query<Person>(
-    "SELECT id, name, email, is_admin AS isAdmin, splits_bills AS splitsBills FROM people WHERE LOWER(email) = ? LIMIT 1",
+    "SELECT id, name, email, is_admin AS isAdmin, splits_bills AS splitsBills, welcomed_at AS welcomedAt FROM people WHERE LOWER(email) = ? LIMIT 1",
     [email.toLowerCase()],
   );
   return rows[0] ?? null;
