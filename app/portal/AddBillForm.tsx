@@ -74,7 +74,7 @@ export default function AddBillForm({
           )}
 
           <form action={formAction}>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="field-label" htmlFor="type">
                   Type
@@ -96,12 +96,6 @@ export default function AddBillForm({
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="field-label" htmlFor="date">
-                  Bill date
-                </label>
-                <input className="field-input figure" type="date" id="date" name="date" required />
               </div>
               <div>
                 <label className="field-label" htmlFor="due">

@@ -8,6 +8,7 @@ import { getEmailMap, requireAdminAction } from "@/lib/auth";
 import { execute, getPool, query } from "@/lib/db";
 import { getBillTypeByName, getSplitters, billFileHref } from "@/lib/bills";
 import { demoMode } from "@/lib/demo";
+import { nyDate } from "@/lib/reminders";
 import {
   emailIdentity,
   formatLongDate,
@@ -53,13 +54,15 @@ export async function addBill(
 
   const errors: string[] = [];
   const typeName = String(formData.get("type") ?? "");
-  const billDateStr = String(formData.get("date") ?? "");
+  // The statement date is just "when it was posted" — stamped automatically
+  // (NY calendar date) so the form only asks for what's on the bill.
+  const billDateStr = nyDate();
   const dueDateStr = String(formData.get("due") ?? "");
   const amountStr = String(formData.get("amount") ?? "");
   const file = formData.get("view");
 
-  if (!billDateStr || !typeName || !amountStr || !dueDateStr || !(file instanceof File) || file.size === 0) {
-    errors.push("Missing one of: date, type, amount, due, or PDF.");
+  if (!typeName || !amountStr || !dueDateStr || !(file instanceof File) || file.size === 0) {
+    errors.push("Missing one of: type, amount, due date, or PDF.");
   }
 
   const billType = await getBillTypeByName(typeName);
@@ -71,7 +74,6 @@ export async function addBill(
   if (!Number.isFinite(amount)) errors.push("Amount must be numeric.");
   else if (amount <= 0) errors.push("Amount must be a positive value.");
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(billDateStr)) errors.push("Invalid bill date format. Please use YYYY-MM-DD.");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDateStr)) errors.push("Invalid due date format. Please use YYYY-MM-DD.");
 
   let origName = "";
@@ -282,10 +284,11 @@ export async function sendReminder(formData: FormData): Promise<void> {
   );
   const owingNames: string[] = owingRows.map((r) => r.name);
 
-  const due = new Date(`${bill.dueDate}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const intervalDays = today > due ? 0 : Math.round((due.getTime() - today.getTime()) / 86400000);
+  // Day math anchored to the apartment's calendar date, not the server's
+  // (Vercel runs UTC, where late evenings ET are already "tomorrow")
+  const intervalDays = Math.round(
+    (Date.parse(bill.dueDate) - Date.parse(nyDate())) / 86400000,
+  );
   const subject =
     intervalDays <= 3
       ? `URGENT: Reminder - ${bill.typeName} Bill Due Soon`

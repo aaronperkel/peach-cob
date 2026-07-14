@@ -4,11 +4,12 @@
  * Peach Cob theme: a warm paper ledger under a peach cabana awning.
  * Cream page, espresso ink, deep-peach accent, periwinkle as the second
  * voice; sage/rose/butter are reserved for paid/unpaid/due-soon semantics.
- * Raw values live on :root so prefers-color-scheme can swap them; the
- * @theme inline block maps them into Tailwind utilities (bg-panel, etc.).
+ * Light-only on purpose — the paper ledger is the whole point. Raw values
+ * live on :root; the @theme inline block maps them into Tailwind utilities
+ * (bg-panel, etc.).
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   --page: #faf3e7;
   --panel: #fffcf7;
@@ -35,35 +36,6 @@
   /* The awning: peach + cream cabana stripes */
   --stripe-a: #eb9a76;
   --stripe-b: #f8e3d3;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #241a15;
-    --panel: #2d211b;
-    --panel-2: #382a21;
-    --ink: #f3e7d7;
-    --ink-muted: #b39c8c;
-    --line: rgba(243, 231, 215, 0.2);
-    --line-soft: rgba(243, 231, 215, 0.09);
-
-    --accent: #eb9a76;
-    --accent-soft: rgba(235, 154, 118, 0.14);
-    --primary: #c15c3b;
-    --primary-hover: #d16a47;
-    --peri: #98a5dd;
-    --peri-soft: rgba(152, 165, 221, 0.14);
-
-    --paid: #93bd8f;
-    --paid-soft: rgba(147, 189, 143, 0.14);
-    --unpaid: #e58d84;
-    --unpaid-soft: rgba(229, 141, 132, 0.12);
-    --warn: #dfb45c;
-    --warn-soft: rgba(223, 180, 92, 0.14);
-
-    --stripe-a: #96502f;
-    --stripe-b: #3a2b22;
-  }
 }
 
 @theme inline {
