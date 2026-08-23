@@ -258,7 +258,7 @@ export function newBillEmailHtml(
     total: number;
     cost: number;
     dueDate: string;
-    billViewLink: string;
+    billViewLink: string | null;
     ownerName: string | null; // who the debtors pay back
     postedByName: string | null; // who uploaded the bill
     isOwner: boolean; // recipient is the owner (owes nothing, collects)
@@ -289,8 +289,8 @@ export function newBillEmailHtml(
       ...(p.ownerName && !p.isOwner ? [{ label: "Pay to", value: esc(p.ownerName) }] : []),
       { label: "Due", value: esc(due) },
     ]) +
-    button(p.billViewLink, "View bill PDF") +
-    button(`${id.baseUrl}/`, "Open the ledger", "subtle");
+    (p.billViewLink ? button(p.billViewLink, "View bill PDF") : "") +
+    button(`${id.baseUrl}/`, "Open the ledger", p.billViewLink ? "subtle" : undefined);
   return emailShell(
     body,
     id,

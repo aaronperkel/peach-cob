@@ -1,12 +1,10 @@
 "use server";
 
-import path from "node:path";
-import { put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getEmailMap, requireAdminAction } from "@/lib/auth";
 import { execute, getPool, query } from "@/lib/db";
-import { getBillTypeByName, getSplitters, billFileHref } from "@/lib/bills";
+import { getBillTypeByName, getSplitters } from "@/lib/bills";
 import { demoMode } from "@/lib/demo";
 import { nyDate } from "@/lib/reminders";
 import {
@@ -59,10 +57,9 @@ export async function addBill(
   const billDateStr = nyDate();
   const dueDateStr = String(formData.get("due") ?? "");
   const amountStr = String(formData.get("amount") ?? "");
-  const file = formData.get("view");
 
-  if (!typeName || !amountStr || !dueDateStr || !(file instanceof File) || file.size === 0) {
-    errors.push("Missing one of: type, amount, due date, or PDF.");
+  if (!typeName || !amountStr || !dueDateStr) {
+    errors.push("Missing one of: type, amount, or due date.");
   }
 
   const billType = await getBillTypeByName(typeName);
@@ -76,25 +73,8 @@ export async function addBill(
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDateStr)) errors.push("Invalid due date format. Please use YYYY-MM-DD.");
 
-  let origName = "";
-  let buffer: Buffer | null = null;
-  if (file instanceof File && file.size > 0) {
-    if (file.size > 5 * 1024 * 1024) errors.push("File is too large. Maximum size is 5MB.");
-    origName = path.basename(file.name).replace(/[^A-Za-z0-9.\-_]/g, "");
-    if (!origName || origName === "." || origName === "..") {
-      errors.push("Invalid filename after sanitization. Please use standard characters.");
-    } else if (!origName.toLowerCase().endsWith(".pdf")) {
-      errors.push("Filename must end with .pdf.");
-    }
-    buffer = Buffer.from(await file.arrayBuffer());
-    if (buffer.length > 0 && !buffer.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
-      errors.push("Invalid file type. Only PDF files are allowed.");
-    }
-  }
-
   if (errors.length > 0) return { errors };
 
-  const year = billDateStr.slice(0, 4);
   const total = amount + Number(billType!.processingFee);
   const splitters = await getSplitters();
   const cost = splitters.length > 0 ? Math.round((total / splitters.length) * 100) / 100 : 0;
@@ -105,24 +85,10 @@ export async function addBill(
   const ownerId = billType!.ownerId;
   const debtors = splitters.filter((p) => p.id !== ownerId);
 
-  // Blob key mirrors the stored pdf_path so /files/<pdf_path> resolves directly.
-  const pdfPath = `${year}/${typeName}/${origName}`;
-  try {
-    await put(pdfPath, buffer!, {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "application/pdf",
-    });
-  } catch (err) {
-    console.error("Blob upload failed:", err);
-    return { errors: ["Failed to store the PDF. Check BLOB_READ_WRITE_TOKEN and try again."] };
-  }
-
   const result = await execute(
     `INSERT INTO bills (type_id, bill_date, due_date, total, per_person_cost, status, pdf_path, added_by_id)
-     VALUES (?, ?, ?, ?, ?, 'unpaid', ?, ?)`,
-    [billType!.id, billDateStr, dueDateStr, total, cost, pdfPath, poster.id],
+     VALUES (?, ?, ?, ?, ?, 'unpaid', NULL, ?)`,
+    [billType!.id, billDateStr, dueDateStr, total, cost, poster.id],
   );
   const newBillId = result.insertId;
 
@@ -138,7 +104,6 @@ export async function addBill(
   // the owner is told who owes her.
   const id = emailIdentity();
   const emailMap = await getEmailMap();
-  const billViewLink = `${id.baseUrl}${billFileHref(pdfPath)}`;
   const debtorNames = debtors.map((p) => p.name);
   const sent: Record<string, string> = {};
   for (const person of splitters) {
@@ -151,7 +116,7 @@ export async function addBill(
         total,
         cost,
         dueDate: dueDateStr,
-        billViewLink,
+        billViewLink: null,
         ownerName: billType!.ownerName,
         postedByName: poster.name,
         isOwner: ownerId != null && person.id === ownerId,

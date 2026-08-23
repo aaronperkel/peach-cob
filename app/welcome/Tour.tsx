@@ -176,7 +176,7 @@ const STEPS: { title: string; body: string; scene: React.ReactNode }[] = [
   },
   {
     title: "She posts the bill",
-    body: "When a bill lands, its owner posts it in the Portal — PDF and all — and the total splits evenly across the four of you.",
+    body: "When a bill lands, its owner posts it in the Portal — type, amount, and due date — and the total splits evenly across the four of you.",
     scene: <ScenePost />,
   },
   {

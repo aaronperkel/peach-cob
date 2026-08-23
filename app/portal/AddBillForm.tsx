@@ -153,21 +153,6 @@ export default function AddBillForm({
               </div>
             </div>
 
-            <div className="mt-4">
-              <label className="field-label" htmlFor="view">
-                PDF statement
-              </label>
-              <input
-                className="field-input"
-                type="file"
-                id="view"
-                name="view"
-                accept="application/pdf"
-                required
-              />
-              <small className="text-xs text-ink-muted">Max 5MB. Everyone gets a notification email.</small>
-            </div>
-
             {selected?.ownerName && (
               <p className="mt-4 text-sm text-ink-muted">
                 {selected.emoji} {selected.name} is on{" "}
