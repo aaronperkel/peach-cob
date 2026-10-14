@@ -22,3 +22,5 @@ inspo/
 .vscode/
 .idea/
 .claude/
+.vercel
+.env*

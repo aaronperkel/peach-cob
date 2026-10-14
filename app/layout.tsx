@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Courier_Prime, Fraunces, Karla } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { getCurrentPerson } from "@/lib/auth";
-import Nav from "@/app/components/Nav";
 import "./globals.css";
 
-// The three voices: Fraunces for display, Karla for prose, Courier Prime as
-// the typed ledger face on every figure, date, and section label.
+// Frozen 2026-10-14: the household moved to Lejer (uselejer.com). This root renders the one
+// static "moved" page and nothing else — no session, no database, no writes.
+
 const fraunces = Fraunces({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -27,23 +25,13 @@ const ledger = Courier_Prime({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_BASE_URL ?? "https://peachcob.vercel.app"),
-  title: "Peach Cob",
-  description: "The house ledger for 404 Parke Ave — bills split, tracked, and settled.",
-  authors: [{ name: "Aaron Perkel" }],
-  openGraph: {
-    title: "Peach Cob",
-    description: "The house ledger for 404 Parke Ave — bills split, tracked, and settled.",
-    url: "/",
-    siteName: "Peach Cob",
-    locale: "en_US",
-    type: "website",
-  },
+  metadataBase: new URL("https://peachcob.vercel.app"),
+  title: "Peach Cob · moved to Lejer",
+  description: "404 Parke Ave's house ledger now lives on Lejer.",
+  robots: { index: false, follow: false },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
-  manifest: "/site.webmanifest",
-  appleWebApp: { capable: true, title: "Peach Cob", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -52,41 +40,23 @@ export const viewport: Viewport = {
   themeColor: "#faf3e7",
 };
 
-export const dynamic = "force-dynamic";
-
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const person = await getCurrentPerson();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${karla.variable} ${ledger.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans">
-        <Nav authed={!!person} isAdmin={!!person?.isAdmin} />
-        <div className="mx-auto w-full max-w-[1000px] flex-1 px-4 py-8 sm:px-5">
-          {children}
-        </div>
+        <div className="awning" aria-hidden />
+        <div className="mx-auto w-full max-w-[1000px] flex-1 px-4 py-8 sm:px-5">{children}</div>
         <footer className="mx-auto w-full max-w-[1000px] px-4 pb-8 sm:px-5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line-soft pt-4 text-xs text-ink-muted">
-            <span className="font-mono font-bold uppercase tracking-[0.12em]">
-              Peach Cob · 404 Parke Ave
-            </span>
-            <span className="flex items-center gap-3">
-              <a className="hover:text-ink underline" href="/welcome">
-                how this works
+            <span className="font-mono font-bold uppercase tracking-[0.12em]">Peach Cob · 404 Parke Ave</span>
+            <span>
+              questions?{" "}
+              <a className="hover:text-ink underline" href="mailto:me@aaronperkel.com">
+                me@aaronperkel.com
               </a>
-              <span>
-                questions?{" "}
-                <a className="hover:text-ink underline" href="mailto:me@aaronperkel.com">
-                  me@aaronperkel.com
-                </a>
-              </span>
             </span>
           </div>
         </footer>
-        <Analytics />
       </body>
     </html>
   );
