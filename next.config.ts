@@ -1,13 +1,10 @@
 import type { NextConfig } from "next";
 
+// Frozen 2026-10-14: the household moved to Lejer. Every URL is a permanent redirect to the
+// household's page there; the static "moved" page in app/ is only the fallback behind it.
 const nextConfig: NextConfig = {
-  // mysql2 must stay a Node dependency, not get bundled
-  serverExternalPackages: ["mysql2", "nodemailer"],
-  experimental: {
-    // Reuse a page's RSC payload for 30s of client-side navigation, so
-    // bouncing between Home/Portal doesn't re-query the DB each time.
-    // Server actions revalidatePath, which purges this cache after mutations.
-    staleTimes: { dynamic: 30 },
+  async redirects() {
+    return [{ source: "/:path*", destination: "https://uselejer.com/peach-cob", permanent: true }];
   },
 };
 
